@@ -1,0 +1,35 @@
+"""
+Пакет tweet-features для извлечения различных типов признаков из данных Twitter.
+
+Этот пакет предоставляет инструменты для извлечения структурных, текстовых,
+визуальных и эмоциональных признаков из твитов. Он также включает функционал
+для снижения размерности эмбеддингов и кеширования вычислительно затратных операций.
+"""
+
+from config.feature_config import FeatureConfig, default_config
+from features.feature_pipeline import FeaturePipeline
+from features.structural_features import StructuralFeatureExtractor
+from features.text_features import TextFeatureExtractor
+from features.image_features import ImageFeatureExtractor
+from features.emotional_features import EmotionalFeatureExtractor
+from utils.logger import setup_logger
+from utils.caching import FeatureCache, cache
+from .utils.dimensionality_reduction import get_reducer
+
+
+__version__ = '0.1.0'
+
+
+__all__ = [
+    'FeatureConfig',
+    'default_config',
+    'FeaturePipeline',
+    'StructuralFeatureExtractor',
+    'TextFeatureExtractor',
+    'ImageFeatureExtractor',
+    'EmotionalFeatureExtractor',
+    'setup_logger',
+    'FeatureCache',
+    'cache',
+    'get_reducer'
+]
