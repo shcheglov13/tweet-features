@@ -1,5 +1,5 @@
 """
-Скрипт установки пакета tweet-features.
+Скрипт установки пакета tweet_features.
 """
 from setuptools import setup, find_packages
 
@@ -20,6 +20,6 @@ setup(
     ],
     author="Shcheglov Stas",
     description="Пакет для извлечения признаков из данных Twitter",
-    url="https://github.com/shcheglov13/tweet-features",
+    url="https://github.com/shcheglov13/tweet_features",
     python_requires=">=3.10",
 )
