@@ -5,9 +5,7 @@ import numpy as np
 from sklearn.decomposition import PCA
 from abc import ABC, abstractmethod
 
-from config.feature_config import default_config
-from utils.logger import setup_logger
-from utils.caching import cache
+from tweet_features.utils.logger import setup_logger
 
 logger = setup_logger('tweet_features.utils.dimensionality_reduction')
 

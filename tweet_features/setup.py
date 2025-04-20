@@ -5,7 +5,7 @@ from setuptools import setup, find_packages
 
 
 setup(
-    name="tweet-features",
+    name="tweet_features",
     version="0.1.0",
     packages=find_packages(),
     install_requires=[

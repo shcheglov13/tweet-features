@@ -2,7 +2,7 @@
 Конфигурация для пакета tweet-features.
 """
 
-from config.feature_config import FeatureConfig, default_config
+from tweet_features.config.feature_config import FeatureConfig, default_config
 
 
 __all__ = [

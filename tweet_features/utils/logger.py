@@ -5,7 +5,7 @@ import logging
 import sys
 from typing import Optional
 
-from config.feature_config import default_config
+from tweet_features.config.feature_config import default_config
 
 
 def setup_logger(name: str, level: Optional[str] = None) -> logging.Logger:

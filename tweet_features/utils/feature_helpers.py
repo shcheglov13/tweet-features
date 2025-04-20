@@ -6,7 +6,7 @@ import emoji
 from typing import List, Dict, Union, Any
 from datetime import datetime
 
-from utils.logger import setup_logger
+from tweet_features.utils.logger import setup_logger
 
 logger = setup_logger('tweet_features.utils.feature_helpers')
 

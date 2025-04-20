@@ -1,10 +1,10 @@
 """
 Модуль для извлечения структурных признаков из твитов.
 """
-from typing import Dict, List, Any, Union, Optional
+from typing import Dict, List, Any, Union
 
-from utils.logger import setup_logger
-from utils.feature_helpers import (
+from tweet_features.utils.logger import setup_logger
+from tweet_features.utils.feature_helpers import (
     extract_time_features,
     detect_media_type,
     create_onehot_encoding

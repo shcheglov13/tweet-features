@@ -4,10 +4,10 @@
 import numpy as np
 from typing import Dict, List, Any, Optional
 
-from config.feature_config import default_config
-from utils.logger import setup_logger
-from utils.embeddings import get_clip_embedder
-from utils.dimensionality_reduction import get_reducer
+from tweet_features.config.feature_config import default_config
+from tweet_features.utils.logger import setup_logger
+from tweet_features.utils.embeddings import get_clip_embedder
+from tweet_features.utils.dimensionality_reduction import get_reducer
 
 logger = setup_logger('tweet_features.features.image_features')
 

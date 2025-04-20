@@ -7,8 +7,8 @@ import hashlib
 import numpy as np
 from typing import Any, Dict, Optional, Union
 
-from config.feature_config import default_config
-from utils.logger import setup_logger
+from tweet_features.config.feature_config import default_config
+from tweet_features.utils.logger import setup_logger
 
 logger = setup_logger('tweet_features.utils.caching')
 

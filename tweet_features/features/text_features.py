@@ -4,11 +4,11 @@
 import numpy as np
 from typing import Dict, List, Any, Union, Optional
 
-from config.feature_config import default_config
-from utils.logger import setup_logger
-from utils.embeddings import get_bertweet_embedder
-from utils.dimensionality_reduction import get_reducer
-from utils.feature_helpers import (
+from tweet_features.config.feature_config import default_config
+from tweet_features.utils.logger import setup_logger
+from tweet_features.utils.embeddings import get_bertweet_embedder
+from tweet_features.utils.dimensionality_reduction import get_reducer
+from tweet_features.utils.feature_helpers import (
     count_special_elements,
     calculate_densities,
     analyze_text_style

@@ -4,12 +4,12 @@
 import pandas as pd
 from typing import Dict, List, Any, Optional, Set
 
-from config.feature_config import default_config, FeatureConfig
-from utils.logger import setup_logger
-from features.structural_features import StructuralFeatureExtractor
-from features.text_features import TextFeatureExtractor
-from features.image_features import ImageFeatureExtractor
-from features.emotional_features import EmotionalFeatureExtractor
+from tweet_features.config.feature_config import default_config, FeatureConfig
+from tweet_features.utils.logger import setup_logger
+from tweet_features.features.structural_features import StructuralFeatureExtractor
+from tweet_features.features.text_features import TextFeatureExtractor
+from tweet_features.features.image_features import ImageFeatureExtractor
+from tweet_features.features.emotional_features import EmotionalFeatureExtractor
 
 logger = setup_logger('tweet_features.features.feature_pipeline')
 

@@ -5,9 +5,9 @@ import torch
 from typing import Dict, List, Any, Optional
 from transformers import AutoModelForSequenceClassification, AutoTokenizer
 
-from config.feature_config import default_config
-from utils.logger import setup_logger
-from utils.caching import cache
+from tweet_features.config.feature_config import default_config
+from tweet_features.utils.logger import setup_logger
+from tweet_features.utils.caching import cache
 
 logger = setup_logger('tweet_features.features.emotional_features')
 

@@ -6,15 +6,15 @@
 для снижения размерности эмбеддингов и кеширования вычислительно затратных операций.
 """
 
-from config.feature_config import FeatureConfig, default_config
-from features.feature_pipeline import FeaturePipeline
-from features.structural_features import StructuralFeatureExtractor
-from features.text_features import TextFeatureExtractor
-from features.image_features import ImageFeatureExtractor
-from features.emotional_features import EmotionalFeatureExtractor
-from utils.logger import setup_logger
-from utils.caching import FeatureCache, cache
-from .utils.dimensionality_reduction import get_reducer
+from tweet_features.config.feature_config import FeatureConfig, default_config
+from tweet_features.features.feature_pipeline import FeaturePipeline
+from tweet_features.features.structural_features import StructuralFeatureExtractor
+from tweet_features.features.text_features import TextFeatureExtractor
+from tweet_features.features.image_features import ImageFeatureExtractor
+from tweet_features.features.emotional_features import EmotionalFeatureExtractor
+from tweet_features.utils.logger import setup_logger
+from tweet_features.utils.caching import FeatureCache, cache
+from tweet_features.utils.dimensionality_reduction import get_reducer
 
 
 __version__ = '0.1.0'
