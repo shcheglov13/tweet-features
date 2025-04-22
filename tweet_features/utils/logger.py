@@ -26,6 +26,9 @@ def setup_logger(name: str, level: Optional[str] = None) -> logging.Logger:
     log_level = level or default_config.log_level
     logger.setLevel(getattr(logging, log_level))
 
+    # Отключаем пропагацию
+    logger.propagate = False
+
     # Если у логгера нет обработчиков, добавляем их
     if not logger.handlers:
         # Создаем обработчик для вывода в консоль
