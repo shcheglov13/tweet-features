@@ -1,8 +1,9 @@
 """
 Модуль для извлечения структурных признаков из твитов.
 """
-from typing import Dict, List, Any, Union
+from typing import Dict, List, Any, Union, Optional
 
+from tweet_features import FeatureConfig, default_config
 from tweet_features.utils.logger import setup_logger
 from tweet_features.utils.feature_helpers import (
     extract_time_features,
@@ -25,11 +26,12 @@ class StructuralFeatureExtractor:
     - Временные признаки: hour, day_of_week, is_weekend
     """
 
-    def __init__(self):
+    def __init__(self, config: Optional[FeatureConfig] = None):
         """
         Инициализирует экстрактор структурных признаков.
         """
         # Все возможные типы твитов
+        self.config = config or default_config
         self.tweet_types = ["SINGLE", "REPLY", "QUOTE", "RETWEET"]
         logger.info("Инициализирован экстрактор структурных признаков")
 

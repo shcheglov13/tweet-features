@@ -5,7 +5,7 @@ import torch
 from typing import Dict, List, Any, Optional
 from transformers import AutoModelForSequenceClassification, AutoTokenizer
 
-from tweet_features.config.feature_config import default_config
+from tweet_features.config.feature_config import default_config, FeatureConfig
 from tweet_features.utils.logger import setup_logger
 from tweet_features.utils.caching import cache
 
@@ -25,7 +25,7 @@ class EmotionalFeatureExtractor:
       - Вероятность irony_prob для основного и цитируемого текста
     """
 
-    def __init__(self, device: Optional[str] = None):
+    def __init__(self, device: Optional[str] = None, config: Optional[FeatureConfig] = None):
         """
         Инициализирует экстрактор эмоциональных признаков.
 
@@ -33,7 +33,8 @@ class EmotionalFeatureExtractor:
             device (str, optional): Устройство для вычислений ('cpu' или 'cuda').
                 По умолчанию используется устройство из конфигурации.
         """
-        self.device = device or default_config.device
+        self.config = config or default_config
+        self.device = device or self.config.device
         self.max_length = 128  # Максимальная длина входной последовательности
 
         # Модели для анализа эмоциональных признаков
@@ -95,7 +96,7 @@ class EmotionalFeatureExtractor:
         self._load_model(model_type)
 
         # Проверяем, есть ли результат в кеше
-        if default_config.use_cache:
+        if self.config.use_cache:
             cache_key = cache.get_cache_key(text, prefix=f"{model_type}_analysis")
             if cache.exists(cache_key):
                 try:
@@ -127,7 +128,7 @@ class EmotionalFeatureExtractor:
         results = {label: float(prob) for label, prob in zip(labels, probabilities)}
 
         # Сохраняем результаты в кеш
-        if default_config.use_cache:
+        if self.config.use_cache:
             cache.save(cache_key, results)
 
         return results
@@ -206,7 +207,7 @@ class EmotionalFeatureExtractor:
         """
         logger.info(f"Извлечение эмоциональных признаков для {len(tweets)} твитов")
 
-        batch_size = batch_size or default_config.batch_size
+        batch_size = batch_size or self.config.batch_size
 
         features = []
         for i in range(0, len(tweets), batch_size):

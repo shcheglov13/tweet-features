@@ -4,7 +4,7 @@
 import numpy as np
 from typing import Dict, List, Any, Optional
 
-from tweet_features.config.feature_config import default_config
+from tweet_features.config.feature_config import default_config, FeatureConfig
 from tweet_features.utils.logger import setup_logger
 from tweet_features.utils.embeddings import get_clip_embedder
 from tweet_features.utils.dimensionality_reduction import get_reducer
@@ -20,7 +20,7 @@ class ImageFeatureExtractor:
     - Эмбеддинги CLIP для изображений
     """
 
-    def __init__(self, embedding_dim: Optional[int] = None):
+    def __init__(self, embedding_dim: Optional[int] = None, config: Optional[FeatureConfig] = None):
         """
         Инициализирует экстрактор визуальных признаков.
 
@@ -28,17 +28,18 @@ class ImageFeatureExtractor:
             embedding_dim (int, optional): Размерность эмбеддингов после снижения размерности.
                 По умолчанию используется значение из конфигурации.
         """
-        self.embedding_dim = embedding_dim or default_config.image_embedding_dim
+        self.config = config or default_config
+        self.embedding_dim = embedding_dim or self.config.image_embedding_dim
         self.original_dim = 768  # CLIP vit-large-patch14 возвращает вектор размерности 768
 
         # Инициализируем редьюсер для снижения размерности
         self.reducer = get_reducer(
-            default_config.dim_reduction_method,
+            self.config.dim_reduction_method,
             n_components=self.embedding_dim
         )
 
         # Получаем эмбеддер
-        self.clip_embedder = get_clip_embedder()
+        self.clip_embedder = get_clip_embedder(config=self.config)
 
         logger.info(f"Инициализирован экстрактор визуальных признаков (embedding_dim={self.embedding_dim})")
 
@@ -98,7 +99,7 @@ class ImageFeatureExtractor:
             features.append(tweet_features)
 
         # Если нужно снизить размерность
-        if default_config.dim_reduction_method != 'none':
+        if self.config.dim_reduction_method != 'none':
             # Собираем эмбеддинги
             image_embeddings = np.array([
                 [features[i][f'image_emb_{j}'] for j in range(self.original_dim)]

@@ -9,9 +9,9 @@ from io import BytesIO
 from typing import List, Optional
 from transformers import AutoModel, AutoTokenizer, CLIPProcessor, CLIPModel
 
-from tweet_features.config.feature_config import default_config
+from tweet_features.config.feature_config import default_config, FeatureConfig
 from tweet_features.utils.logger import setup_logger
-from tweet_features.utils.caching import cache
+from tweet_features.utils.caching import cache, FeatureCache
 
 logger = setup_logger('tweet_features.utils.embeddings')
 
@@ -21,7 +21,12 @@ class BertEmbedder:
     Класс для извлечения эмбеддингов из текста с использованием BERTweet.
     """
 
-    def __init__(self, model_name: str = "vinai/bertweet-base", device: Optional[str] = None):
+    def __init__(
+            self,
+            model_name: str = "vinai/bertweet-base",
+            device: Optional[str] = None,
+            config: Optional[FeatureConfig] = None
+    ):
         """
         Инициализирует модель BERTweet для извлечения эмбеддингов.
 
@@ -30,8 +35,9 @@ class BertEmbedder:
             device (str, optional): Устройство для вычислений ('cpu' или 'cuda').
                 По умолчанию используется устройство из конфигурации.
         """
+        self.config = config or default_config
         self.model_name = model_name
-        self.device = device or default_config.device
+        self.device = device or self.config.device
         self.max_length = 128  # Максимальная длина входной последовательности
 
         logger.info(f"Инициализация BERTweet эмбеддера ({model_name}) на устройстве {self.device}")
@@ -61,7 +67,7 @@ class BertEmbedder:
         texts_to_process = []
         indices_to_process = []
 
-        if use_cache and default_config.use_cache:
+        if use_cache and self.config.use_cache:
             for i, text in enumerate(texts):
                 if text:  # Пропускаем пустые строки
                     cache_key = cache.get_cache_key(text, prefix="bertweet")
@@ -106,7 +112,7 @@ class BertEmbedder:
             for i, idx in enumerate(indices_to_process):
                 embeddings.append((idx, cls_embeddings[i]))
 
-                if use_cache and default_config.use_cache and texts_to_process[i]:
+                if use_cache and self.config.use_cache and texts_to_process[i]:
                     cache_key = cache.get_cache_key(texts_to_process[i], prefix="bertweet")
                     cache.save(cache_key, cls_embeddings[i])
 
@@ -149,7 +155,12 @@ class CLIPEmbedder:
     Класс для извлечения эмбеддингов из изображений с использованием CLIP.
     """
 
-    def __init__(self, model_name: str = "openai/clip-vit-large-patch14", device: Optional[str] = None):
+    def __init__(
+            self,
+            model_name: str = "openai/clip-vit-large-patch14",
+            device: Optional[str] = None,
+            config: Optional[FeatureConfig] = None
+    ):
         """
         Инициализирует модель CLIP для извлечения эмбеддингов.
 
@@ -158,8 +169,9 @@ class CLIPEmbedder:
             device (str, optional): Устройство для вычислений ('cpu' или 'cuda').
                 По умолчанию используется устройство из конфигурации.
         """
+        self.config = config or default_config
         self.model_name = model_name
-        self.device = device or default_config.device
+        self.device = device or self.config.device
 
         logger.info(f"Инициализация CLIP эмбеддера ({model_name}) на устройстве {self.device}")
 
@@ -179,10 +191,27 @@ class CLIPEmbedder:
         Returns:
             Optional[Image.Image]: Загруженное изображение или None в случае ошибки.
         """
+        if self.config.use_cache:
+            cache_key = cache.get_cache_key(image_url, prefix="image_download")
+            if cache.exists(cache_key):
+                try:
+                    # Загружаем изображение из кеша
+                    image_data = cache.load(cache_key)
+                    return Image.open(BytesIO(image_data)).convert('RGB')
+                except Exception as e:
+                    logger.warning(f"Ошибка при загрузке изображения из кеша {image_url}: {str(e)}")
+
         try:
+            # Скачиваем изображение
             response = requests.get(image_url, timeout=10)
             response.raise_for_status()
-            return Image.open(BytesIO(response.content)).convert('RGB')
+            image_data = response.content
+
+            # Сохраняем в кеш
+            if self.config.use_cache:
+                cache_key = cache.get_cache_key(image_url, prefix="image_download")
+                cache.save(cache_key, image_data)
+            return Image.open(BytesIO(image_data)).convert('RGB')
         except Exception as e:
             logger.warning(f"Ошибка при загрузке изображения {image_url}: {str(e)}")
             return None
@@ -206,7 +235,7 @@ class CLIPEmbedder:
         urls_to_process = []
         indices_to_process = []
 
-        if use_cache and default_config.use_cache:
+        if use_cache and self.config.use_cache:
             for i, url in enumerate(image_urls):
                 if url:  # Пропускаем пустые URL
                     cache_key = cache.get_cache_key(url, prefix="clip")
@@ -258,7 +287,7 @@ class CLIPEmbedder:
                 for i, idx in enumerate(valid_indices):
                     embeddings.append((idx, image_embeddings[i]))
 
-                    if use_cache and default_config.use_cache:
+                    if use_cache and self.config.use_cache:
                         cache_key = cache.get_cache_key(urls_to_process[valid_images[i][0]], prefix="clip")
                         cache.save(cache_key, image_embeddings[i])
 
@@ -306,27 +335,33 @@ bertweet_embedder = None
 clip_embedder = None
 
 
-def get_bertweet_embedder() -> BertEmbedder:
+def get_bertweet_embedder(config: Optional[FeatureConfig] = None) -> BertEmbedder:
     """
     Получает глобальный экземпляр BertEmbedder (синглтон).
+
+    Args:
+        config (FeatureConfig, optional): Пользовательская конфигурация.
 
     Returns:
         BertEmbedder: Экземпляр BertEmbedder.
     """
     global bertweet_embedder
     if bertweet_embedder is None:
-        bertweet_embedder = BertEmbedder()
+        bertweet_embedder = BertEmbedder(config=config)
     return bertweet_embedder
 
 
-def get_clip_embedder() -> CLIPEmbedder:
+def get_clip_embedder(config: Optional[FeatureConfig] = None) -> CLIPEmbedder:
     """
     Получает глобальный экземпляр CLIPEmbedder (синглтон).
+
+    Args:
+        config (FeatureConfig, optional): Пользовательская конфигурация.
 
     Returns:
         CLIPEmbedder: Экземпляр CLIPEmbedder.
     """
     global clip_embedder
     if clip_embedder is None:
-        clip_embedder = CLIPEmbedder()
+        clip_embedder = CLIPEmbedder(config=config)
     return clip_embedder

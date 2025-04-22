@@ -4,7 +4,7 @@
 import numpy as np
 from typing import Dict, List, Any, Union, Optional
 
-from tweet_features.config.feature_config import default_config
+from tweet_features.config.feature_config import default_config, FeatureConfig
 from tweet_features.utils.logger import setup_logger
 from tweet_features.utils.embeddings import get_bertweet_embedder
 from tweet_features.utils.dimensionality_reduction import get_reducer
@@ -31,7 +31,7 @@ class TextFeatureExtractor:
     - Стиль текста: uppercase_ratio, word_elongation_count, excessive_punctuation_count
     """
 
-    def __init__(self, embedding_dim: Optional[int] = None, use_embeddings: bool = True):
+    def __init__(self, embedding_dim: Optional[int] = None, use_embeddings: bool = True, config: Optional[FeatureConfig] = None):
         """
         Инициализирует экстрактор текстовых признаков.
 
@@ -40,19 +40,20 @@ class TextFeatureExtractor:
                 По умолчанию используется значение из конфигурации.
             use_embeddings (bool): Извлекать ли эмбеддинги BERT.
         """
-        self.embedding_dim = embedding_dim or default_config.text_embedding_dim
+        self.config = config or default_config
+        self.embedding_dim = embedding_dim or self.config.text_embedding_dim
         self.use_embeddings = use_embeddings
         self.original_dim = 768  # BERTweet возвращает вектор размерности 768
 
         if self.use_embeddings:
             # Инициализируем редьюсер для снижения размерности
             self.reducer = get_reducer(
-                default_config.dim_reduction_method,
+                self.config.dim_reduction_method,
                 n_components=self.embedding_dim
             )
 
             # Получаем эмбеддер
-            self.bertweet_embedder = get_bertweet_embedder()
+            self.bertweet_embedder = get_bertweet_embedder(config=self.config)
 
         logger.info(
             f"Инициализирован экстрактор текстовых признаков "
@@ -205,7 +206,7 @@ class TextFeatureExtractor:
             features.append(tweet_features)
 
         # Если нужны эмбеддинги и их нужно снизить размерность
-        if self.use_embeddings and default_config.dim_reduction_method != 'none':
+        if self.use_embeddings and self.config.dim_reduction_method != 'none':
             # Собираем эмбеддинги для основного текста
             text_embeddings = np.array([
                 [features[i][f'text_emb_{j}'] for j in range(self.original_dim)]

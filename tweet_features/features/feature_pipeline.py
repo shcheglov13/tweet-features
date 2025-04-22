@@ -46,21 +46,23 @@ class FeaturePipeline:
         self.extractors = {}
 
         if use_structural:
-            self.extractors['structural'] = StructuralFeatureExtractor()
+            self.extractors['structural'] = StructuralFeatureExtractor(config=self.config)
 
         if use_text:
             self.extractors['text'] = TextFeatureExtractor(
                 embedding_dim=self.config.text_embedding_dim,
-                use_embeddings=use_bert_embeddings
+                use_embeddings=use_bert_embeddings,
+                config=self.config
             )
 
         if use_image:
             self.extractors['image'] = ImageFeatureExtractor(
-                embedding_dim=self.config.image_embedding_dim
+                embedding_dim=self.config.image_embedding_dim,
+                config=self.config
             )
 
         if use_emotional:
-            self.extractors['emotional'] = EmotionalFeatureExtractor()
+            self.extractors['emotional'] = EmotionalFeatureExtractor(config=self.config)
 
         logger.info(
             f"Инициализирован пайплайн извлечения признаков с экстракторами: "

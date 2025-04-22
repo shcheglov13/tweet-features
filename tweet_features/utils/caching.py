@@ -7,7 +7,7 @@ import hashlib
 import numpy as np
 from typing import Any, Dict, Optional, Union
 
-from tweet_features.config.feature_config import default_config
+from tweet_features.config.feature_config import default_config, FeatureConfig
 from tweet_features.utils.logger import setup_logger
 
 logger = setup_logger('tweet_features.utils.caching')
@@ -21,16 +21,19 @@ class FeatureCache:
     такие как эмбеддинги BERT и CLIP.
     """
 
-    def __init__(self, cache_dir: Optional[str] = None):
+    def __init__(self, cache_dir: Optional[str] = None, config: Optional[FeatureConfig] = None):
         """
         Инициализирует кеш признаков.
 
         Args:
             cache_dir (str, optional): Путь до директории кеша.
                 По умолчанию используется путь из конфигурации.
+            config (FeatureConfig, optional): Пользовательская конфигурация.
+                По умолчанию используется глобальная конфигурация.
         """
-        self.cache_dir = cache_dir or default_config.cache_dir
-        self.use_cache = default_config.use_cache
+        self.config = config or default_config
+        self.cache_dir = cache_dir or self.config.cache_dir
+        self.use_cache = self.config.use_cache
 
         # Создаем директорию кеша, если она не существует
         if self.use_cache and not os.path.exists(self.cache_dir):
