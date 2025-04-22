@@ -71,7 +71,7 @@ class StructuralFeatureExtractor:
         if quoted_text_len > 0:
             features['text_quoted_ratio'] = main_text_len / quoted_text_len if main_text_len > 0 else 0.0
         else:
-            features['text_quoted_ratio'] = 0.0 if main_text_len == 0 else float('inf')
+            features['text_quoted_ratio'] = 0.0 if main_text_len == 0 else 1e6
 
         # Извлекаем временные признаки
         created_at = tweet.get('created_at', '')

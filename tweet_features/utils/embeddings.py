@@ -11,7 +11,7 @@ from transformers import AutoModel, AutoTokenizer, CLIPProcessor, CLIPModel
 
 from tweet_features.config.feature_config import default_config, FeatureConfig
 from tweet_features.utils.logger import setup_logger
-from tweet_features.utils.caching import cache, FeatureCache
+from tweet_features.utils.caching import cache
 
 logger = setup_logger('tweet_features.utils.embeddings')
 
