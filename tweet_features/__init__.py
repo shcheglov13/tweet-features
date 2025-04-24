@@ -3,7 +3,7 @@
 
 Этот пакет предоставляет инструменты для извлечения структурных, текстовых,
 визуальных и эмоциональных признаков из твитов. Он также включает функционал
-для снижения размерности эмбеддингов и кеширования вычислительно затратных операций.
+для кеширования вычислительно затратных операций.
 """
 
 from tweet_features.config.feature_config import FeatureConfig, default_config
@@ -14,7 +14,6 @@ from tweet_features.features.image_features import ImageFeatureExtractor
 from tweet_features.features.emotional_features import EmotionalFeatureExtractor
 from tweet_features.utils.logger import setup_logger
 from tweet_features.utils.caching import FeatureCache, cache
-from tweet_features.utils.dimensionality_reduction import get_reducer
 
 
 __version__ = '0.1.0'
@@ -30,6 +29,5 @@ __all__ = [
     'EmotionalFeatureExtractor',
     'setup_logger',
     'FeatureCache',
-    'cache',
-    'get_reducer'
+    'cache'
 ]

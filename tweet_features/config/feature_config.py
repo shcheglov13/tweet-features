@@ -14,19 +14,12 @@ class FeatureConfig:
     Класс конфигурации для пакета извлечения признаков.
 
     Attributes:
-        text_embedding_dim (int): Размерность эмбеддингов текста после снижения размерности.
-        image_embedding_dim (int): Размерность эмбеддингов изображений после снижения размерности.
         batch_size (int): Размер пакета для пакетной обработки.
         use_cache (bool): Использовать ли кеширование признаков.
         cache_dir (str): Путь до директории кеша.
         device (str): Устройство для вычислений ('cpu' или 'cuda').
-        dim_reduction_method (str): Метод снижения размерности ('pca' или 'none').
         log_level (str): Уровень логирования.
     """
-    # Размерность эмбеддингов
-    text_embedding_dim: int = 32
-    image_embedding_dim: int = 64
-
     # Параметры обработки
     batch_size: int = 16
 
@@ -36,9 +29,6 @@ class FeatureConfig:
 
     # Вычислительные ресурсы
     device: Literal['cpu', 'cuda'] = 'cuda' if torch.cuda.is_available() else 'cpu'
-
-    # Снижение размерности
-    dim_reduction_method: Literal['pca', 'none'] = 'pca'
 
     # Логирование
     log_level: Literal['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL'] = 'INFO'

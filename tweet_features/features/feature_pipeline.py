@@ -50,14 +50,12 @@ class FeaturePipeline:
 
         if use_text:
             self.extractors['text'] = TextFeatureExtractor(
-                embedding_dim=self.config.text_embedding_dim,
                 use_embeddings=use_bert_embeddings,
                 config=self.config
             )
 
         if use_image:
             self.extractors['image'] = ImageFeatureExtractor(
-                embedding_dim=self.config.image_embedding_dim,
                 config=self.config
             )
 

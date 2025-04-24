@@ -7,7 +7,6 @@ from typing import Dict, List, Any, Union, Optional
 from tweet_features.config.feature_config import default_config, FeatureConfig
 from tweet_features.utils.logger import setup_logger
 from tweet_features.utils.embeddings import get_bertweet_embedder
-from tweet_features.utils.dimensionality_reduction import get_reducer
 from tweet_features.utils.feature_helpers import (
     count_special_elements,
     calculate_densities,
@@ -31,33 +30,26 @@ class TextFeatureExtractor:
     - Стиль текста: uppercase_ratio, word_elongation_count, excessive_punctuation_count
     """
 
-    def __init__(self, embedding_dim: Optional[int] = None, use_embeddings: bool = True, config: Optional[FeatureConfig] = None):
+    def __init__(self, use_embeddings: bool = True, config: Optional[FeatureConfig] = None):
         """
         Инициализирует экстрактор текстовых признаков.
 
         Args:
-            embedding_dim (int, optional): Размерность эмбеддингов после снижения размерности.
-                По умолчанию используется значение из конфигурации.
             use_embeddings (bool): Извлекать ли эмбеддинги BERT.
+            config (FeatureConfig, optional): Пользовательская конфигурация.
+                По умолчанию используется глобальная конфигурация.
         """
         self.config = config or default_config
-        self.embedding_dim = embedding_dim or self.config.text_embedding_dim
         self.use_embeddings = use_embeddings
         self.original_dim = 768  # BERTweet возвращает вектор размерности 768
 
         if self.use_embeddings:
-            # Инициализируем редьюсер для снижения размерности
-            self.reducer = get_reducer(
-                self.config.dim_reduction_method,
-                n_components=self.embedding_dim
-            )
-
             # Получаем эмбеддер
             self.bertweet_embedder = get_bertweet_embedder(config=self.config)
 
         logger.info(
             f"Инициализирован экстрактор текстовых признаков "
-            f"(embedding_dim={self.embedding_dim}, use_embeddings={self.use_embeddings})"
+            f"(use_embeddings={self.use_embeddings})"
         )
 
     def extract_text_metrics(self, text: str) -> Dict[str, Union[int, float]]:
@@ -165,29 +157,12 @@ class TextFeatureExtractor:
             text_embeddings = self.bertweet_embedder.get_embeddings([text])[0] if text else np.zeros(self.original_dim)
             quoted_text_embeddings = self.bertweet_embedder.get_embeddings([quoted_text])[0] if quoted_text else np.zeros(self.original_dim)
 
-            # Применяем снижение размерности если требуется
-            if self.config.dim_reduction_method != 'none':
-                # Подготавливаем данные для снижения размерности
-                text_embeddings_array = np.array([text_embeddings])
-                quoted_text_embeddings_array = np.array([quoted_text_embeddings])
+            # Добавляем эмбеддинги в признаки
+            for i, val in enumerate(text_embeddings):
+                features[f'text_emb_{i}'] = float(val)
 
-                # Снижаем размерность эмбеддингов
-                text_embeddings_reduced = self.reducer.fit_transform(text_embeddings_array)[0]
-                quoted_text_embeddings_reduced = self.reducer.fit_transform(quoted_text_embeddings_array)[0]
-
-                # Добавляем эмбеддинги со сниженной размерностью в признаки
-                for i, val in enumerate(text_embeddings_reduced):
-                    features[f'text_emb_reduced_{i}'] = float(val)
-
-                for i, val in enumerate(quoted_text_embeddings_reduced):
-                    features[f'quoted_text_emb_reduced_{i}'] = float(val)
-            else:
-                # Добавляем оригинальные эмбеддинги в признаки
-                for i, val in enumerate(text_embeddings):
-                    features[f'text_emb_{i}'] = float(val)
-
-                for i, val in enumerate(quoted_text_embeddings):
-                    features[f'quoted_text_emb_{i}'] = float(val)
+            for i, val in enumerate(quoted_text_embeddings):
+                features[f'quoted_text_emb_{i}'] = float(val)
 
         return features
 
@@ -208,39 +183,5 @@ class TextFeatureExtractor:
         for tweet in tweets:
             tweet_features = self.extract(tweet)
             features.append(tweet_features)
-
-        # Если нужны эмбеддинги и их нужно снизить размерность
-        if self.use_embeddings and self.config.dim_reduction_method != 'none':
-            # Собираем эмбеддинги для основного текста
-            text_embeddings = np.array([
-                [features[i][f'text_emb_{j}'] for j in range(self.original_dim)]
-                for i in range(len(features))
-            ])
-
-            # Собираем эмбеддинги для цитируемого текста
-            quoted_text_embeddings = np.array([
-                [features[i][f'quoted_text_emb_{j}'] for j in range(self.original_dim)]
-                for i in range(len(features))
-            ])
-
-            # Снижаем размерность эмбеддингов основного текста
-            text_embeddings_reduced = self.reducer.fit_transform(text_embeddings)
-
-            # Снижаем размерность эмбеддингов цитируемого текста
-            quoted_text_embeddings_reduced = self.reducer.fit_transform(quoted_text_embeddings)
-
-            # Обновляем признаки с новыми эмбеддингами
-            for i in range(len(features)):
-                # Удаляем старые эмбеддинги
-                for j in range(self.original_dim):
-                    if f'text_emb_{j}' in features[i]:
-                        del features[i][f'text_emb_{j}']
-                    if f'quoted_text_emb_{j}' in features[i]:
-                        del features[i][f'quoted_text_emb_{j}']
-
-                # Добавляем новые эмбеддинги
-                for j in range(self.embedding_dim):
-                    features[i][f'text_emb_reduced_{j}'] = float(text_embeddings_reduced[i][j])
-                    features[i][f'quoted_text_emb_reduced_{j}'] = float(quoted_text_embeddings_reduced[i][j])
 
         return features
