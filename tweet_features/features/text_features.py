@@ -159,31 +159,35 @@ class TextFeatureExtractor:
             'emoji_count': text_metrics['emoji_count'] + quoted_text_metrics['emoji_count']
         })
 
-        # Извлекаем эмбеддинги, если нужно
+        # Обработка эмбеддингов
         if self.use_embeddings:
-            # Получаем эмбеддинги для основного текста
-            if text:
-                text_embeddings = self.bertweet_embedder.get_embeddings([text])[0]
+            # Получаем эмбеддинги или используем нулевые векторы
+            text_embeddings = self.bertweet_embedder.get_embeddings([text])[0] if text else np.zeros(self.original_dim)
+            quoted_text_embeddings = self.bertweet_embedder.get_embeddings([quoted_text])[0] if quoted_text else np.zeros(self.original_dim)
 
-                # Добавляем эмбеддинги в признаки
+            # Применяем снижение размерности если требуется
+            if self.config.dim_reduction_method != 'none':
+                # Подготавливаем данные для снижения размерности
+                text_embeddings_array = np.array([text_embeddings])
+                quoted_text_embeddings_array = np.array([quoted_text_embeddings])
+
+                # Снижаем размерность эмбеддингов
+                text_embeddings_reduced = self.reducer.fit_transform(text_embeddings_array)[0]
+                quoted_text_embeddings_reduced = self.reducer.fit_transform(quoted_text_embeddings_array)[0]
+
+                # Добавляем эмбеддинги со сниженной размерностью в признаки
+                for i, val in enumerate(text_embeddings_reduced):
+                    features[f'text_emb_reduced_{i}'] = float(val)
+
+                for i, val in enumerate(quoted_text_embeddings_reduced):
+                    features[f'quoted_text_emb_reduced_{i}'] = float(val)
+            else:
+                # Добавляем оригинальные эмбеддинги в признаки
                 for i, val in enumerate(text_embeddings):
                     features[f'text_emb_{i}'] = float(val)
-            else:
-                # Для пустого текста используем нулевой вектор
-                for i in range(self.original_dim):
-                    features[f'text_emb_{i}'] = 0.0
 
-            # Получаем эмбеддинги для цитируемого текста
-            if quoted_text:
-                quoted_text_embeddings = self.bertweet_embedder.get_embeddings([quoted_text])[0]
-
-                # Добавляем эмбеддинги в признаки
                 for i, val in enumerate(quoted_text_embeddings):
                     features[f'quoted_text_emb_{i}'] = float(val)
-            else:
-                # Для пустого текста используем нулевой вектор
-                for i in range(self.original_dim):
-                    features[f'quoted_text_emb_{i}'] = 0.0
 
         return features
 

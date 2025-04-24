@@ -58,17 +58,24 @@ class ImageFeatureExtractor:
         # Получаем URL изображения
         image_url = tweet.get('image_url', '')
 
-        # Извлекаем эмбеддинги для изображения
-        if image_url:
-            image_embeddings = self.clip_embedder.get_embeddings([image_url])[0]
+        # Получаем эмбеддинги или используем нулевой вектор
+        image_embeddings = self.clip_embedder.get_embeddings([image_url])[0] if image_url else np.zeros(self.original_dim)
 
-            # Добавляем эмбеддинги в признаки
+        # Применяем снижение размерности если требуется
+        if self.config.dim_reduction_method != 'none':
+            # Подготавливаем данные для снижения размерности
+            image_embeddings_array = np.array([image_embeddings])
+
+            # Снижаем размерность эмбеддингов
+            image_embeddings_reduced = self.reducer.fit_transform(image_embeddings_array)[0]
+
+            # Добавляем эмбеддинги со сниженной размерностью в признаки
+            for i, val in enumerate(image_embeddings_reduced):
+                features[f'image_emb_reduced_{i}'] = float(val)
+        else:
+            # Добавляем оригинальные эмбеддинги в признаки
             for i, val in enumerate(image_embeddings):
                 features[f'image_emb_{i}'] = float(val)
-        else:
-            # Для отсутствующего изображения используем нулевой вектор
-            for i in range(self.original_dim):
-                features[f'image_emb_{i}'] = 0.0
 
         return features
 
