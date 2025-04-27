@@ -14,6 +14,7 @@ from tweet_features.features.image_features import ImageFeatureExtractor
 from tweet_features.features.emotional_features import EmotionalFeatureExtractor
 from tweet_features.utils.logger import setup_logger
 from tweet_features.utils.caching import FeatureCache, cache
+from tweet_features.preprocessing import DimensionalityReducer, FeatureSelector
 
 
 __version__ = '0.1.0'
@@ -29,5 +30,7 @@ __all__ = [
     'EmotionalFeatureExtractor',
     'setup_logger',
     'FeatureCache',
-    'cache'
+    'cache',
+    "DimensionalityReducer",
+    "FeatureSelector"
 ]
